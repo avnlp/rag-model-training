@@ -1,0 +1,38 @@
+# Configuration for Training a RQ-RAG model
+
+model_name_or_path: "meta-llama/Llama-3.2-3B-Instruct"
+output_dir: "/model"
+dataset_name: "zorowin123/rq_rag"
+
+# LoRA Configuration
+use_lora: false
+lora_rank: 64
+lora_alpha: 16.0
+lora_dropout: 0.1
+save_merged_lora_model: false
+
+# Training Configuration
+max_seq_length: 512
+per_device_train_batch_size: 8
+learning_rate: 5e-5
+weight_decay: 0.0
+num_train_epochs: 3
+max_train_steps: null
+gradient_accumulation_steps: 1
+lr_scheduler_type: "linear"
+warmup_ratio: 0
+seed: 42
+preprocessing_num_workers: 4
+overwrite_cache: false
+checkpointing_steps: null
+logging_steps: 100
+resume_from_checkpoint: null
+with_tracking: false
+report_to: "all"
+low_cpu_mem_usage: true
+use_special_tokens: true
+sample_train_data: "all"
+save_total_limit: 1
+mask_retrieved_paragraph: false
+wandb_project_name: "rq-rag"
+wandb_run_name: "rq-rag-v1"
