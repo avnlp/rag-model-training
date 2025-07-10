@@ -1,0 +1,40 @@
+# Configuration for Self-RAG Critic training
+
+# Model to use for fine-tuning
+model_name: "meta-llama/Llama-3.1-8B-Instruct"
+
+# Maximum sequence length for input tokens
+max_length: 2048
+
+# Path to the training data file (JSON format)
+data_path: "./data/critic_data.json"
+
+# Directory to save the trained model and checkpoints
+output_dir: "./critic_model"
+
+# Number of training epochs
+num_train_epochs: 3
+
+# Batch size per device during training
+per_device_train_batch_size: 4
+
+# Number of updates steps to accumulate before performing a backward/update pass
+gradient_accumulation_steps: 8
+
+# Initial learning rate for the optimizer
+learning_rate: 2e-5
+
+# Number of warmup steps for learning rate scheduler
+warmup_steps: 100
+
+# Log training metrics every X update steps
+logging_steps: 10
+
+# Save model checkpoint every X update steps
+save_steps: 500
+
+# Whether to use special Self-RAG tokens in the model
+use_special_tokens: true
+
+# Whether to mask special tokens during loss calculation
+mask_special_tokens: true
