@@ -1,0 +1,38 @@
+# Configuration file for training the Adaptive-RAG model
+
+# Model configuration
+model_name_or_path: "t5-large"
+
+# Dataset configuration
+train_file: "train.json"
+train_column: "train"
+val_column: "validation"
+question_column: "question"
+answer_column: "answers"
+
+# Tokenization configuration
+ignore_pad_token_for_loss: true
+max_seq_length: 384
+preprocessing_num_workers: null
+
+# Training configuration
+overwrite_cache: false
+max_answer_length: 30
+max_train_samples: null
+pad_to_max_length: false
+per_device_train_batch_size: 8
+learning_rate: 5e-5
+weight_decay: 0.0
+num_train_epochs: 2
+max_train_steps: null
+gradient_accumulation_steps: 1
+lr_scheduler_type: "linear"
+num_warmup_steps: 0
+output_dir: "output"
+seed: null
+push_to_hub: false
+checkpointing_steps: null
+resume_from_checkpoint: null
+with_tracking: false
+report_to: "all"
+doc_stride: 128
