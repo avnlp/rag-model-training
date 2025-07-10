@@ -1,0 +1,28 @@
+# Generator Data Preparation Configuration
+
+# Path to the input JSON/JSONL file
+input_file: "path/to/input.json"  
+
+# Output directory for all generated files
+output_dir: "output/generator_data"  
+
+# Path to the critic model
+critic_model: "path/to/critic_model"  
+
+# Path to the retriever model
+retriever_model: "path/to/retriever_model"  
+
+# Path to the corpus for retrieval
+corpus_path: "path/to/corpus"  
+
+# Path to the embeddings for retrieval
+embeddings_path: "path/to/embeddings"  
+
+# Data split (train/val/test)
+split: "train"  
+
+# Number of top documents to consider for retrieval
+top_n: 10  
+
+# Number of documents to retrieve per query
+n_docs: 10  
