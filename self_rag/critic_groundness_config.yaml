@@ -1,0 +1,17 @@
+# Configuration for adding groundness tokens to the dataset
+
+# OpenAI API Key
+api_key: "OpenAI_API_KEY"
+org_name: "OpenAI_ORG_NAME"
+
+# Optional, set if you want to use a LLM Provider
+base_url: "https://api.openai.com/v1"
+
+# Set the model to use
+model_name: "gpt-3.5-turbo"
+
+# The dataset for which the Groundness Tokens (IsSUP) are to be added
+input_file: "formatted_earnings_call_dataset.jsonl"
+
+# The dataset with Groundness Tokens added
+output_file_name: "earnings_call_dataset_groundness_tokens.json"

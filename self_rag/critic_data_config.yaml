@@ -1,0 +1,26 @@
+# Configuration for critic data processor
+
+# Random seed for reproducibility
+random_seed: 42
+
+# Input data files (adjust paths according to your data)
+utility_files:
+  - "data/utility_tokens.json"
+
+retrieval_files:
+  - "data/retrieval_tokens.json"
+
+groundness_files:
+  - "data/groundness_tokens.json"
+
+relevance_files:
+  - "data/relevance_tokens.json"
+
+# Sampling rate for relevant examples (to balance dataset)
+relevant_sampling_rate: 0.7
+
+# Development set size
+dev_size: 1500
+
+# Output file prefix
+output_file_prefix: "self_rag_critic_data"
