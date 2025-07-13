@@ -1,4 +1,4 @@
-RAG Model Training
+# RAG Model Training
 
 This repository provides training code for various advanced Retrieval-Augmented Generation (RAG) techniques. The repository focuses on training models for four main approaches: 
 - **Adaptive-RAG**, which trains a classifier to predict query complexity and optimize retrieval strategies.
