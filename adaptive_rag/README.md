@@ -37,7 +37,7 @@ The dataset classifies queries into three complexity levels:
 - **B**: Queries that require at least a single retrieval step to answer correctly.  
 - **C**: Queries that require multiple retrieval steps to answer correctly.
 
-The goal to behind this approach is to use the simplest effective approach for each query. By identifying the complexity level of the query, we can select the appropriate retrieval strategy.
+The goal in Adaptive-RAG is to use the simplest, most effective approach for each query. By identifying the complexity level of the query, we can select the appropriate retrieval strategy.
 
 To run the training script, use the following command:
 
