@@ -1,0 +1,43 @@
+# Configuration for TriviaQA dataset
+
+# General settings
+general:
+  random_seed: 42
+  num_proc: 4
+
+# Dataset configuration
+dataset:
+  name: "mandarjoshi/trivia_qa"
+  config: "rc.web"
+  max_combined_length: 4096
+  splits:
+    train: "train"
+    test: "test"
+    validation: "validation"
+  columns_to_remove:
+    - "question_source"
+    - "search_results"
+    - "entity_pages"
+
+# Output paths
+output:
+  data_dir: "saved_data"
+  questions_file: "questions.json"
+  chunks_file: "chunks.pkl"
+  faiss_index_dir: "faiss_index"
+
+# Embedding model configuration
+embedding:
+  model_name: "intfloat/multilingual-e5-large-instruct"
+  model_kwargs:
+    device: "cpu"
+  encode_kwargs:
+    normalize_embeddings: false
+
+# Sampling configuration
+sampling:
+  num_training_contexts: 5000
+
+# Metadata configuration
+metadata:
+  source_name: "trivia_qa_train"

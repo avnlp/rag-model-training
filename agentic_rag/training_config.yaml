@@ -1,0 +1,55 @@
+model:
+  name: "unsloth/Qwen3-1.7B-unsloth-bnb-4bit"
+  max_seq_length: 8192 
+  load_in_4bit: true
+  fast_inference: true
+  gpu_memory_utilization: 0.6
+
+lora:
+  rank: 64
+  alpha: 128
+  target_modules:
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+  use_gradient_checkpointing: "unsloth"
+  random_state: 3407
+
+training:
+  use_vllm: true
+  use_agentic_generate: true
+  learning_rate: 5.0e-6
+  adam_beta1: 0.9
+  adam_beta2: 0.99
+  weight_decay: 0.1
+  warmup_ratio: 0.1
+  lr_scheduler_type: "cosine"
+  optim: "paged_adamw_8bit"
+  logging_steps: 1
+  bf16: true 
+  fp16: false 
+  per_device_train_batch_size: 8
+  gradient_accumulation_steps: 1
+  num_generations: 8
+  max_prompt_length: 1024
+  max_completion_length: 1024
+  max_steps: 101
+  save_steps: 50
+  max_grad_norm: 0.1
+  report_to: "wandb"
+  output_dir: "training"
+
+sampling:
+  temperature: 0.1
+  top_p: 0.95
+  max_tokens: 4096
+
+agent:
+  max_generations: 6
+
+wandb:
+  project: "bootstrap-search-rl"
