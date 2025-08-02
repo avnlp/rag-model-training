@@ -1,0 +1,33 @@
+general:
+  random_seed: 42
+  num_proc: 4
+
+dataset:
+  name: "trivia_qa"
+  config: "rc"
+  max_combined_length: 10000
+  splits:
+    train: "train"
+    test: "test"
+  columns_to_remove:
+    - "search_results"
+    - "question_id"
+    - "entity_pages"
+
+sampling:
+  num_training_contexts: 5000
+
+chunking:
+  chunk_size: 1000
+  chunk_overlap: 0
+
+metadata:
+  source_name: "TriviaQA"
+
+embedding:
+  model_name: "sentence-transformers/all-mpnet-base-v2"
+  model_kwargs:
+    device: "cuda"
+  encode_kwargs:
+    batch_size: 32
+    show_progress_bar: true
