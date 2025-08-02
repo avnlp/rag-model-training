@@ -1,0 +1,237 @@
+[build-system]
+requires = ["uv_build>=0.7.20,<0.8.0"]
+build-backend = "uv_build"
+
+[project]
+name = "rag-model-training"
+version = "0.1.0"
+description = 'Finetuning Large Language Models for RAG'
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "Ashwin Mathur", email = "" },
+  { name = "Varun Mathur", email = "" },
+]
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Development Status :: 5 - Production/Stable",
+  "Programming Language :: Python",
+]
+dependencies = [
+  "torch>=2.0.0",
+  "transformers>=4.30.0",
+  "pyyaml>=6.0",
+  "tqdm>=4.65.0",
+]
+
+[dependency-groups]
+dev = [
+  "pytest",
+  "coverage[toml]>=6.5",
+  "pytest-rerunfailures",
+  "black>=23.1.0",
+  "mypy>=1.0.0",
+  "ruff>=0.0.243",
+]
+
+rq_rag = [
+  "torch>=2.0.0",
+  "transformers>=4.30.0",
+  "datasets>=2.12.0",
+  "accelerate>=0.20.0",
+  "peft>=0.4.0",
+  "pyyaml>=6.0",
+  "tqdm>=4.65.0",
+  "wandb>=0.15.0",
+]
+
+adaptive_rag = [
+  "torch>=2.0.0",
+  "transformers>=4.30.0",
+  "datasets>=2.12.0",
+  "accelerate>=0.20.0",
+  "tqdm>=4.65.0",
+  "pyyaml>=6.0",
+  "huggingface-hub>=0.15.0",
+]
+
+corrective_rag = [
+  "torch>=2.0.0",
+  "transformers>=4.30.0",
+  "numpy>=1.21.0",
+  "pandas>=1.3.0",
+  "pyyaml>=6.0",
+  "tqdm>=4.65.0",
+]
+
+self_rag = [
+  "torch>=2.0.0",
+  "transformers>=4.30.0",
+  "datasets>=2.12.0",
+  "accelerate>=0.20.0",
+  "peft>=0.4.0",
+  "pyyaml>=6.0",
+  "tqdm>=4.65.0",
+  "numpy>=1.24.0",
+  "sentencepiece>=0.1.99",
+  "protobuf>=3.20.0",
+  "huggingface-hub>=0.15.0",
+  "scikit-learn>=1.2.0",
+  "safetensors>=0.3.0",
+  "bitsandbytes>=0.40.0",
+  "triton>=2.0.0",
+  "einops>=0.6.1",
+  "beir>=1.0.0",
+  "sentence-transformers>=2.2.2",
+  "pandas>=1.5.0",
+  "nltk>=3.8.1",
+  "scipy>=1.10.0",
+  "faiss-cpu>=1.7.4",
+  "vllm>=0.2.0",
+  "backoff>=2.2.1",
+  "jsonlines>=3.1.0",
+  "openai>=1.0.0",
+  "spacy>=3.5.0",
+]
+
+
+[project.urls]
+Documentation = "https://github.com/avnlp/rag-model-training#readme"
+Issues = "https://github.com/avnlp/rag-model-training/issues"
+Source = "https://github.com/avnlp/rag-model-training"
+
+[tool.coverage.run]
+source = ["rag-model-training"]
+branch = true
+parallel = true
+
+[tool.coverage.report]
+omit = ["*/tests/*", "*/__init__.py"]
+show_missing = true
+exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+  "A",
+  "ARG",
+  "B",
+  "C",
+  "D",
+  "D401",
+  "DTZ",
+  "E",
+  "EM",
+  "F",
+  "I",
+  "ICN",
+  "ISC",
+  "N",
+  "PLC",
+  "PLE",
+  "PLR",
+  "PLW",
+  "Q",
+  "RUF",
+  "S",
+  "T",
+  "TID",
+  "UP",
+  "W",
+  "YTT",
+]
+ignore = [
+    "ARG001", # Allow unused kwargs in functions
+    "ARG002",
+    "ARG003",
+    "ARG004",
+    # Allow non-abstract empty methods in abstract base classes
+    "A002",
+    "B027",
+    "B018",
+    # Allow boolean positional values in function calls, like `dict.get(... True)`
+    "FBT003",
+    # Ignore checks for possible passwords
+    "S101",
+    "S104",
+    "S105",
+    "S106",
+    "S107",
+    "S113",
+    "S301",
+    "S311",
+    "S603",
+    "S605",
+    "S607",
+    "S701",
+    # Ignore complexity
+    "C901",
+    "PLC0415",
+    "PLR2004", # Allow Magic value used in comparison
+    "PLR0911",
+    "PLR0912",
+    "PLR0913",
+    "PLR0915",
+    "PLW2901",
+    "DTZ005",
+    # Allow print statements
+    "T201",
+    # Ignore missing module docstrings
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D107",
+    "D205",
+    "D401",
+    "D417",
+    # Ignore Line too long
+    "E501",
+    "E722",
+    "E741",
+    "N802",
+    "N806",
+    "N812",
+    "N816",
+    "UP031",
+    "RUF001",
+    "RUF002",
+]
+unfixable = [
+  # Don't touch unused imports
+  "F401",
+]
+extend-select = ["I"]
+
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+known-first-party = ["rag_model_training"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "parents"
+
+[tool.ruff.lint.per-file-ignores]
+# Tests can use magic values, assertions, and relative imports
+"tests/**/*" = ["PLR2004", "S101", "TID252"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--strict-markers"
+markers = ["integration: integration tests"]
+log_cli = true
+
+[tool.black]
+line-length = 120
+
+[[tool.mypy.overrides]]
+module = ["rag_model_training.*", "pytest.*", "numpy.*"]
+ignore_missing_imports = true
