@@ -1,150 +1,26 @@
-"""RL helpers module for handling tool-based conversations.
-This module provides utility functions for handling chat-based tool interactions
-and calculating rewards based on the quality of responses.
-"""
+# This code is based on the implementation from: https://github.com/dCaples/AutoDidact/blob/main/rl_helpers.py.
 
-import json
-import re
-from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime
 
 import nest_asyncio
 import torch
-from search_module import get_qa_dataset, search
 from trl.trainer.grpo_trainer import apply_chat_template
+
+from .prompts import extract_json_objects, get_initial_chat
+from .search_module import search
 
 nest_asyncio.apply()
 
 
-# Constants for prompts and tool definitions
-def get_system_prompt():
-    """Get the system prompt with current date."""
-    current_date = datetime.now().strftime("%d %b %Y")
-    return f"""Cutting Knowledge Date: December 2023
-Today Date: {current_date}
+@dataclass
+class AgenticOutputs:
+    """Dataclass to store agent generation outputs."""
 
-When you receive a tool call response, use the output to format an answer to the original user question.
-
-You are a helpful assistant with tool calling capabilities.
-"""
-
-
-# Tool definition for search corpus
-SEARCH_TOOL_DEFINITION = {
-    "type": "function",
-    "function": {
-        "name": "search_corpus",
-        "description": "Search over the knowledge corpus with a given query",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "query": {
-                    "type": "string",
-                    "description": "The query to search the knowledge corpus with",
-                },
-            },
-            "required": ["query"],
-        },
-    },
-}
-
-
-def build_user_prompt(q):
-    """Build a user prompt with the question and search tool definition.
-
-    Args:
-        q (str): The question to ask
-
-    Returns:
-        str: Formatted user prompt
-    """
-    user_prompt = f"""You are a research assistant, and you use the search_corpus tool to find answers to questions.
-Given a question, answer it using by doing searches using the search_corpus tool.
-To use the search_corpus tool, respond with a JSON for a function call with its proper arguments.
-
-You may also reason in any message, thinking step by step about how to answer the question. Wrap your reasoning in <reasoning> and </reasoning> tags.
-
-{json.dumps(SEARCH_TOOL_DEFINITION, indent=2)}
-
-Question: {q}
-"""
-    return user_prompt
-
-
-def get_initial_chat(question):
-    """Initialize a chat state with the question.
-
-    Args:
-        question (str): The question to ask
-
-    Returns:
-        dict: Initial chat state with system and user messages
-    """
-    return {
-        "messages": [
-            {"role": "system", "content": get_system_prompt()},
-            {"role": "user", "content": build_user_prompt(question)},
-        ]
-    }
-
-
-def extract_json_objects(text):
-    """Extracts JSON objects (dictionaries) from a text that may contain multiple JSON objects.
-
-    Args:
-        text (str): The input text possibly containing JSON objects.
-
-    Returns:
-        list: A list of parsed JSON objects (dictionaries) extracted from the text.
-    """
-    results = []
-    length = len(text)
-    i = 0
-
-    while i < length:
-        # Look for the start of a JSON object
-        if text[i] == "{":
-            start = i
-            stack = 1
-            i += 1
-            # Continue until we find the matching closing brace
-            while i < length and stack > 0:
-                if text[i] == "{":
-                    stack += 1
-                elif text[i] == "}":
-                    stack -= 1
-                i += 1
-            # Only attempt to decode if the braces are balanced
-            if stack == 0:
-                candidate = text[start:i]
-                try:
-                    obj = json.loads(candidate)
-                    # Optionally, ensure it's a dictionary if that's what you expect
-                    if isinstance(obj, dict):
-                        results.append(obj)
-                except json.JSONDecodeError:
-                    # If it's not valid JSON, skip it.
-                    pass
-        else:
-            i += 1
-    return results
-
-
-def remove_reasoning(text: str) -> str:
-    """Removes all content between <reasoning> and </reasoning> tags,
-    including the tags themselves.
-
-    Parameters:
-        text (str): The input text that may contain <reasoning>...</reasoning> tags.
-
-    Returns:
-        str: The text with the tags and their content removed.
-    """
-    # The regex pattern matches from <reasoning> to </reasoning> non-greedily.
-    pattern = r"<reasoning>.*?</reasoning>"
-    cleaned_text = re.sub(pattern, "", text, flags=re.DOTALL)
-    return cleaned_text
+    prompt_tokens: list[torch.Tensor]
+    response_tokens: list[torch.Tensor]
+    response_masks: list[torch.Tensor]
+    final_response_str: list[str]
+    full_chat_states: list[dict]
 
 
 def run_agent_generations(generate_fn, tokenizer, chat_states):
@@ -237,6 +113,15 @@ def run_tool_calls(chat_states):
 
 
 def get_mask(text, tokenizer):
+    """Create a mask for assistant responses in the conversation.
+
+    Args:
+        text: Conversation text
+        tokenizer: Tokenizer for processing text
+
+    Returns:
+        torch.Tensor: Mask tensor with 1s for assistant response tokens, 0s elsewhere
+    """
     encoding = tokenizer(text, add_special_tokens=False)
     start_header_id = tokenizer.convert_tokens_to_ids("<|start_header_id|>")
     assistant_token = tokenizer.convert_tokens_to_ids("assistant")
@@ -265,6 +150,16 @@ def get_mask(text, tokenizer):
 
 
 def check_exceeded_max_new_tokens(chat_states, max_new_tokens, tokenizer):
+    """Check if chat states have exceeded maximum new tokens limit.
+
+    Args:
+        chat_states: List of chat states
+        max_new_tokens: Maximum allowed new tokens
+        tokenizer: Tokenizer for processing text
+
+    Returns:
+        list: Updated chat states with finished flag for exceeded limits
+    """
     for chat_state in chat_states:
         if chat_state.get("finished"):
             continue
@@ -275,16 +170,16 @@ def check_exceeded_max_new_tokens(chat_states, max_new_tokens, tokenizer):
     return chat_states
 
 
-@dataclass
-class AgenticOutputs:
-    prompt_tokens: list[torch.Tensor]
-    response_tokens: list[torch.Tensor]
-    response_masks: list[torch.Tensor]
-    final_response_str: list[str]
-    full_chat_states: list[dict]
-
-
 def get_chat_num_tokens(chat_state, tokenizer):
+    """Get the number of tokens in a chat state.
+
+    Args:
+        chat_state: Chat state dictionary
+        tokenizer: Tokenizer for processing text
+
+    Returns:
+        int: Number of tokens in the chat
+    """
     chat_text = apply_chat_template(chat_state, tokenizer=tokenizer)["text"]
     return tokenizer(chat_text, add_special_tokens=False, return_tensors="pt")["input_ids"].squeeze().shape[0]
 
@@ -295,11 +190,12 @@ def run_agent(generate_fn, tokenizer, questions, max_generations=5, max_new_toke
     Args:
         generate_fn: Function to generate model responses
         tokenizer: Tokenizer for processing text
-        batch: Batch of data containing questions
+        questions: List of questions to process
         max_generations: Maximum number of generation steps
+        max_new_tokens: Maximum number of new tokens allowed
 
     Returns:
-        list: Final answers for each question
+        AgenticOutputs: Agent outputs containing tokens, masks, and responses
     """
     chat_states = [get_initial_chat(q) for q in questions]
     # set the initial_prompt length
@@ -318,6 +214,7 @@ def run_agent(generate_fn, tokenizer, questions, max_generations=5, max_new_toke
         answers.append(chat["messages"][-1]["content"])
 
     def split_prompt_assistant(convo_text):
+        """Split conversation text into prompt and assistant response parts."""
         marker = "<|start_header_id|>assistant<|end_header_id|>"
         idx = convo_text.find(marker)
         if idx == -1:
@@ -353,169 +250,3 @@ def run_agent(generate_fn, tokenizer, questions, max_generations=5, max_new_toke
     )
 
     return agentic_outputs
-
-
-def verify(student_answer: str, answer: str) -> bool:
-    """Verify if student's answer matches the correct answer.
-
-    Args:
-        student_answer: The model's answer
-        answer: The ground truth answer
-
-    Returns:
-        bool: True if answer is correct, False otherwise
-    """
-    # Simple string matching for now
-    return student_answer.strip().lower() == answer.strip().lower()
-
-
-# Verification
-async def check_correctness(question, student_answer, answer):
-    """Calculate reward for a given student answer.
-
-    Args:
-        question (str): The original question
-        student_answer (str): The model's answer
-        answer (str): The ground truth answer
-
-    Returns:
-        float: Reward value (1 for correct, 0 for incorrect)
-    """
-    # log to "./reward_func.log"
-    with open("reward_func.log", "a") as f:
-        f.write("\n" + "==" * 40 + "\n\n")
-        f.write(f"Question: {question}\n")
-        f.write(f"Student Answer: {student_answer}\n")
-        f.write(f"Answer: {answer}\n")
-        if student_answer.startswith("Error during"):
-            f.write("failed function call")
-            return 0
-        if len(student_answer) < 5:
-            f.write("failed Too short answer\n")
-            return 0
-        else:
-            f.write("last message didn't fail\n")
-            student_answer_clean = remove_reasoning(student_answer)
-            is_correct = verify(student_answer_clean, answer)
-            f.write(f"Is Correct: {is_correct}, so reward is {int(is_correct)}\n")
-            return 1 if is_correct else 0
-
-
-def check_student_answers(
-    questions: list[str],
-    answers: list[str],
-    student_answers: list[str],
-    vllm_generate_func: Callable[[list[str]], list[str]],
-    tokenizer,
-    log_file: str = "qa_log.txt",
-) -> list[bool]:
-    """Evaluates a list of student answers against the true answers using a vLLM generate function.
-    The function applies the chat template to each prompt before passing it to the generate function.
-    It also appends the details of each QA pair and the verifier's response to a log file.
-
-    Args:
-        questions: A list of strings representing the questions.
-        answers: A list of strings representing the correct answers.
-        student_answers: A list of strings containing the student's answers.
-        vllm_generate_func: A function that takes a list of chat-formatted prompt strings and returns a list of generated outputs.
-        tokenizer: The tokenizer used to apply the chat template.
-        log_file: Optional; path to the file where the QA pairs and verification responses will be appended.
-
-    Returns:
-        A list of booleans indicating whether each student's answer is correct.
-    """
-    if not (len(questions) == len(answers) == len(student_answers)):
-        msg = "The number of questions, answers, and student answers must be equal."
-        raise ValueError(msg)
-
-    prompts = []
-    for question, answer, student_ans in zip(questions, answers, student_answers, strict=False):
-        # Construct the plain text prompt for each QA pair.
-        prompt_text = (
-            "You are grading a student's answer. For the following question, "
-            "compare the student's answer to the correct answer. Reply with 'Yes' if the student's answer is correct, or 'No' if it is completely incorrect.\n\n"
-            f"Question: {question}\n"
-            f"Correct Answer: {answer}\n"
-            f"Student Answer: {student_ans}\n"
-        )
-        # Apply the chat template to the prompt.
-        formatted_prompt = tokenizer.apply_chat_template(
-            [{"role": "user", "content": prompt_text}],
-            tokenize=False,
-            add_generation_prompt=True,
-        )
-        prompts.append(formatted_prompt)
-
-    # Get the model responses in batch (each response should ideally be "Yes" or "No")
-    responses = vllm_generate_func(prompts)
-    responses_text = []
-    for response in responses:
-        # Handle different response formats
-        if hasattr(response, "outputs"):
-            try:
-                responses_text.append(response.outputs[0].text)
-            except (AttributeError, IndexError):
-                # Fallback for simple string responses
-                responses_text.append(str(response))
-        else:
-            responses_text.append(str(response))
-
-    # Evaluate each response and mark as correct if "yes" appears in the answer (case-insensitive)
-    results = []
-    for response in responses_text:
-        results.append("yes" in response.lower())
-
-    # Append the QA details and verifier's response to the specified log file
-    with open(log_file, "a") as file:
-        for question, answer, student_ans, verifier_response in zip(
-            questions, answers, student_answers, responses_text, strict=False
-        ):
-            file.write("Question: " + question + "\n")
-            file.write("Correct Answer: " + answer + "\n")
-            file.write("Student Answer: " + student_ans + "\n")
-            file.write("Verifier said: " + verifier_response + "\n")
-            file.write("-" * 40 + "\n")
-
-    return results
-
-
-def build_reward_correctness_fn(generate_fn, tokenizer):
-    def reward_correctness(prompts, completions, **reward_kwargs):
-        teacher_answers = reward_kwargs["answer"]
-        student_answers = [completion["messages"][-1]["content"] for completion in completions]
-
-        correct = check_student_answers(
-            prompts,
-            teacher_answers,
-            student_answers,
-            vllm_generate_func=generate_fn,
-            tokenizer=tokenizer,
-        )
-        return correct
-
-    return reward_correctness
-
-
-def reward_formatting(prompts, completions, **reward_kwargs):
-    # make sure full chats doesn't have any error function calls
-    has_error = [False] * len(completions)
-    for i, chat in enumerate(completions):
-        for message in chat["messages"]:
-            if "Error during" in message["content"]:
-                has_error[i] = True
-                break
-    return [0.7 if not e else 0 for e in has_error]
-
-
-def run_eval(generate_fn, verify_fn, tokenizer):
-    train_dataset, test_dataset = get_qa_dataset()
-    questions = test_dataset["prompt"]
-    agentic_outputs = run_agent(generate_fn, tokenizer, questions)
-    full_chat_states = agentic_outputs.full_chat_states
-    rewards = verify_fn(questions, full_chat_states, answer=test_dataset["answer"])
-
-    print("RESULTS:")
-    print("percentage of correct answers:", sum(rewards) / len(rewards))
-    print("=" * 30)
-
-    return full_chat_states

@@ -1,5 +1,7 @@
+# Agentic RAG GRPO training configuration
+
 model:
-  name: "unsloth/Qwen3-1.7B-unsloth-bnb-4bit"
+  name: "meta-llama/meta-Llama-3.1-8B-Instruct"
   max_seq_length: 8192 
   load_in_4bit: true
   fast_inference: true

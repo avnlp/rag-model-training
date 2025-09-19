@@ -1,0 +1,36 @@
+# Agentic RAG inference configuration
+
+model:
+  name: "meta-llama/meta-Llama-3.1-8B-Instruct"
+  max_seq_length: 8192 
+  load_in_4bit: true
+  fast_inference: true
+  gpu_memory_utilization: 0.6
+
+lora:
+  name: "meta-Llama-3.1-8B-Instruct-grpo"
+  rank: 64
+  alpha: 128
+  target_modules:
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+  use_gradient_checkpointing: "unsloth"
+  random_state: 3407
+
+sampling:
+  temperature: 0.1
+  top_p: 0.95
+  max_tokens: 4096
+
+generation_sampling:
+  temperature: 0.1
+  top_p: 0.95
+  max_tokens: 1024
+
+agent:
+  max_generations: 6

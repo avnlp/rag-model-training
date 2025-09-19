@@ -1,30 +1,28 @@
 # This code is based on the implementation from: https://github.com/dCaples/AutoDidact/blob/main/autodidact.ipynb.
 
-import os
 from pathlib import Path
 
 import yaml
-from unsloth import FastLanguageModel, is_bfloat16_supported
+from unsloth import FastLanguageModel
 from vllm import SamplingParams
 
+from .evaluation import run_eval
 from .rl_helpers import (
     build_reward_correctness_fn,
     get_qa_dataset,
-    reward_formatting,
     run_agent,
 )
-from .unsloth_grpo_trainer_agent import UnslothGRPOConfig, UnslothGRPOTrainer
 
 # Load configuration from YAML file
-config_path = Path(__file__).parent / "training_config.yaml"
+config_path = Path(__file__).parent / "inference_config.yaml"
 with open(config_path, encoding="utf-8") as f:
     config = yaml.safe_load(f)
 
 # Model configuration
 model_config = config["model"]
 lora_config = config["lora"]
-training_config = config["training"]
 sampling_config = config["sampling"]
+generation_sampling_config = config["generation_sampling"]
 agent_config = config["agent"]
 
 # Initialize model with specified parameters
@@ -37,7 +35,6 @@ model, tokenizer = FastLanguageModel.from_pretrained(
     gpu_memory_utilization=model_config["gpu_memory_utilization"],
 )
 
-# Apply LoRA configuration for efficient fine-tuning
 model = FastLanguageModel.get_peft_model(
     model,
     r=lora_config["rank"],
@@ -47,37 +44,9 @@ model = FastLanguageModel.get_peft_model(
     random_state=lora_config["random_state"],
 )
 
-# Set WANDB project for experiment tracking
-os.environ["WANDB_PROJECT"] = config["wandb"]["project"]
 
 # Load training and test datasets
 train_dataset, test_dataset = get_qa_dataset()
-
-# Configure training arguments with values from YAML
-training_args = UnslothGRPOConfig(
-    use_vllm=training_config["use_vllm"],
-    use_agentic_generate=training_config["use_agentic_generate"],
-    learning_rate=training_config["learning_rate"],
-    adam_beta1=training_config["adam_beta1"],
-    adam_beta2=training_config["adam_beta2"],
-    weight_decay=training_config["weight_decay"],
-    warmup_ratio=training_config["warmup_ratio"],
-    lr_scheduler_type=training_config["lr_scheduler_type"],
-    optim=training_config["optim"],
-    logging_steps=training_config["logging_steps"],
-    bf16=is_bfloat16_supported() if training_config["bf16"] else False,
-    fp16=not is_bfloat16_supported() if training_config["fp16"] else False,
-    per_device_train_batch_size=training_config["per_device_train_batch_size"],
-    gradient_accumulation_steps=training_config["gradient_accumulation_steps"],
-    num_generations=training_config["num_generations"],
-    max_prompt_length=training_config["max_prompt_length"],
-    max_completion_length=training_config["max_completion_length"],
-    max_steps=training_config["max_steps"],
-    save_steps=training_config["save_steps"],
-    max_grad_norm=training_config["max_grad_norm"],
-    report_to=training_config["report_to"],
-    output_dir=training_config["output_dir"],
-)
 
 # Configure sampling parameters for generation
 verifier_sampling_params = SamplingParams(
@@ -129,17 +98,23 @@ reward_correctness = build_reward_correctness_fn(
     tokenizer,
 )
 
-# Initialize trainer with model, tokenizer, reward functions, and training args
-trainer = UnslothGRPOTrainer(
-    model=model,
-    processing_class=tokenizer,
-    reward_funcs=[
-        reward_correctness,
-        reward_formatting,
-    ],
-    args=training_args,
-    train_dataset=train_dataset,
+sampling_params = SamplingParams(
+    temperature=generation_sampling_config["temperature"],
+    top_p=generation_sampling_config["top_p"],
+    max_tokens=generation_sampling_config["max_tokens"],
 )
 
-# Start training
-trainer.train()
+
+def eval_generate_fn(inputs):
+    return model.fast_generate(
+        inputs,
+        sampling_params=sampling_params,
+        lora_request=model.load_lora(config["lora"]["name"]),
+    )
+
+
+run_eval(
+    generate_fn=eval_generate_fn,
+    verify_fn=reward_correctness,
+    tokenizer=tokenizer,
+)

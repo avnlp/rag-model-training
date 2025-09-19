@@ -1,6 +1,4 @@
-"""Search module for RL training loop.
-This module provides functions to search through vectorized documents and retrieve question-answer pairs.
-"""
+# This code is based on the implementation from: https://github.com/dCaples/AutoDidact/blob/main/search_module.py.
 
 import json
 import pickle
@@ -10,25 +8,33 @@ from datasets import Dataset
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
 
+MODEL_NAME = "intfloat/multilingual-e5-large"
+MODEL_KWARGS = {"device": "cpu"}
+ENCODE_KWARGS = {"normalize_embeddings": False}
+TEST_SIZE = 0.1
+SEED = 42
 
-# Load pre-saved vectorstore
+
 def load_vectorstore():
-    """Load the pre-saved FAISS index."""
+    """Load the pre-saved FAISS index.
+
+    Returns:
+        FAISS: Loaded FAISS vectorstore object or None if failed.
+    """
     try:
         import os
 
-        model_name = "sentence-transformers/all-mpnet-base-v2"
-        model_kwargs = {"device": "cpu"}
-        encode_kwargs = {"normalize_embeddings": False}
         embeddings = HuggingFaceEmbeddings(
-            model_name=model_name, model_kwargs=model_kwargs, encode_kwargs=encode_kwargs
+            model_name=MODEL_NAME, model_kwargs=MODEL_KWARGS, encode_kwargs=ENCODE_KWARGS
         )
+
         # Load the FAISS index with absolute path
         index_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "faiss_index")
         print(f"Loading FAISS index from: {index_path}")
         vectorstore = FAISS.load_local(index_path, embeddings, allow_dangerous_deserialization=True)
         print("Successfully loaded FAISS index")
         return vectorstore
+
     except Exception as e:
         print(f"Error loading vectorstore: {e}")
         import traceback
@@ -37,7 +43,7 @@ def load_vectorstore():
         return None
 
 
-# Load the vectorstore when module is imported
+# Load vectorstore when module is imported
 try:
     vectorstore = load_vectorstore()
     if vectorstore is None:
@@ -57,6 +63,9 @@ def search(query: str, return_type=str, results: int = 5) -> str | list[str]:
 
     Returns:
         Results as string or list depending on return_type
+
+    Raises:
+        ValueError: If vectorstore is not loaded or invalid return_type is provided
     """
     if vectorstore is None:
         msg = "Vectorstore not loaded. Please ensure FAISS index exists."
@@ -78,9 +87,12 @@ def search(query: str, return_type=str, results: int = 5) -> str | list[str]:
         raise ValueError(msg)
 
 
-# Load questions from saved data
 def load_qa_data():
-    """Load the pre-generated questions and document chunks."""
+    """Load the pre-generated questions and document chunks.
+
+    Returns:
+        tuple: A tuple containing (chunks, questions) or (None, None) if failed.
+    """
     try:
         import os
 
@@ -128,7 +140,10 @@ def get_question_answer(idx: int | None = None, return_both: bool = True) -> dic
         return_both: Whether to return both question and answer (default: True)
 
     Returns:
-        Question and answer as tuple if return_both=True, otherwise just the question
+        dict | str: Question and answer as dict if return_both=True, otherwise just the question
+
+    Raises:
+        ValueError: If questions are not loaded or index is out of range
     """
     if questions is None:
         msg = "Questions not loaded. Please ensure questions.json exists."
@@ -153,9 +168,15 @@ def get_question_answer(idx: int | None = None, return_both: bool = True) -> dic
         return question
 
 
-# Function to get the total number of questions
 def get_question_count() -> int:
-    """Get the total number of available questions."""
+    """Get the total number of available questions.
+
+    Returns:
+        int: Total number of questions
+
+    Raises:
+        ValueError: If questions are not loaded
+    """
     if questions is None:
         msg = "Questions not loaded. Please ensure questions.json exists."
         raise ValueError(msg)
@@ -172,16 +193,17 @@ def get_qa_dataset():
     Additional keys present in the original questions data will also be included.
 
     Returns:
-        A HuggingFace Dataset object.
+        tuple: A tuple of (train_dataset, test_dataset) split from the full dataset.
     """
     if questions is None:
         msg = "Questions not loaded. Please ensure questions.json exists."
         raise ValueError(msg)
 
     qa_dataset = Dataset.from_list(questions)
-    full_dataset = qa_dataset.shuffle(seed=42)
-    train_dataset = full_dataset.train_test_split(test_size=0.1, seed=42)["train"]
-    test_dataset = full_dataset.train_test_split(test_size=0.1, seed=42)["test"]
+    full_dataset = qa_dataset.shuffle(seed=SEED)
+    train_dataset = full_dataset.train_test_split(test_size=TEST_SIZE, seed=SEED)["train"]
+    test_dataset = full_dataset.train_test_split(test_size=TEST_SIZE, seed=SEED)["test"]
     train_dataset = train_dataset.rename_column("question", "prompt")
     test_dataset = test_dataset.rename_column("question", "prompt")
+
     return train_dataset, test_dataset

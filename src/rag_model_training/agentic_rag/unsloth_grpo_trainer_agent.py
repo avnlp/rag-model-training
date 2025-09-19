@@ -1,3 +1,5 @@
+# This code is based on the implementation from: https://github.com/dCaples/AutoDidact/blob/main/UnslothGRPOTrainerTemp.py.
+
 import os
 from contextlib import nullcontext
 from dataclasses import dataclass, field
