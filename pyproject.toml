@@ -96,6 +96,22 @@ self_rag = [
   "spacy>=3.5.0",
 ]
 
+agentic_rag = [
+  "datasets",
+  "faiss-gpu",
+  "langchain",
+  "langchain-community",
+  "Markdown",
+  "tokenizers",
+  "transformers==4.49.0",
+  "unsloth==2025.3.6",
+  "unsloth_zoo==2025.3.4",
+  "unstructured",
+  "vllm==0.7.3",
+  "wandb",
+]
+
+
 
 [project.urls]
 Documentation = "https://github.com/avnlp/rag-model-training#readme"
@@ -233,5 +249,5 @@ log_cli = true
 line-length = 120
 
 [[tool.mypy.overrides]]
-module = ["rag_model_training.*", "pytest.*", "numpy.*"]
+module = ["rag_model_training.*", "pytest.*", "numpy.*", "nest_asyncio"]
 ignore_missing_imports = true
