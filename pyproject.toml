@@ -31,9 +31,9 @@ dev = [
   "pytest",
   "coverage[toml]>=6.5",
   "pytest-rerunfailures",
-  "black>=23.1.0",
+  "black==24.10.0",
   "mypy>=1.0.0",
-  "ruff>=0.0.243",
+  "ruff==0.13.1",
 ]
 
 rq_rag = [
@@ -111,6 +111,21 @@ agentic_rag = [
   "wandb",
 ]
 
+rezero_agentic_rag = [
+  "datasets",
+  "faiss-gpu",
+  "langchain",
+  "langchain-community",
+  "Markdown",
+  "tokenizers",
+  "transformers==4.49.0",
+  "unsloth==2025.3.6",
+  "unsloth_zoo==2025.3.4",
+  "unstructured",
+  "vllm==0.7.3",
+  "wandb",
+  "loguru>=0.7.0",
+]
 
 
 [project.urls]
