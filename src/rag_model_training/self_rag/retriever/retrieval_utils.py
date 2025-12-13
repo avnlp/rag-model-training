@@ -15,12 +15,11 @@ from typing import Any, TypedDict
 
 import jsonlines
 import numpy as np
-import torch
-
 import src.contriever
 import src.data
 import src.index
 import src.normalize_text
+import torch
 
 os.environ["TOKENIZERS_PARALLELISM"] = "true"
 
