@@ -16,7 +16,7 @@ def run_eval(generate_fn, verify_fn, tokenizer):
     Returns:
         list: Full chat states from evaluation
     """
-    train_dataset, test_dataset = get_qa_dataset()
+    _train_dataset, test_dataset = get_qa_dataset()
     questions = test_dataset["prompt"]
     agentic_outputs = run_agent(generate_fn, tokenizer, questions)
     full_chat_states = agentic_outputs.full_chat_states

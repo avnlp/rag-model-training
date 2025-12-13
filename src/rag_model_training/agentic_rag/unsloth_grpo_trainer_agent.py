@@ -176,7 +176,7 @@ class UnslothEfficientGRPO(torch.autograd.Function):
             scaling,
         ):
             (chunk_grad_input,), (
-                chunk_loss,
+                _chunk_loss,
                 (
                     unscaled_loss,
                     chunk_completion_length,
@@ -296,7 +296,7 @@ def grpo_accumulated_loss(
     n_chunks=-1,
 ):
     # All Unsloth Zoo code licensed under LGPLv3
-    bsz, qlen = input_ids.shape
+    bsz, _qlen = input_ids.shape
     # Find closest multiple
     factors = [i for i in range(1, bsz + 1) if bsz % i == 0]
     if n_chunks == -1:
@@ -1340,7 +1340,7 @@ class _UnslothGRPOTrainer(Trainer):
             inputs["completion_mask"],
         )
         input_ids = torch.cat([prompt_ids, completion_ids], dim=1)
-        bsz, qlen = input_ids.shape
+        _bsz, _qlen = input_ids.shape
         # attention_mask = torch.cat([prompt_mask, completion_mask], dim=1)
         attention_mask = None
         logits_to_keep = completion_ids.size(1)  # we only need to compute the logits for the completion tokens

@@ -2,7 +2,7 @@
 
 Agentic RAG implements a training approach for language models that enables them to act as autonomous agents with retrieval capabilities. The model is trained using Group Relative Policy Optimization (GRPO) to recognize missing information, rewrite queries, and generate tool calls for retrieval autonomously.
 
-This implementation is based on the [AutoDidact](https://github.com/dCaples/AutoDidact) framework and applies it to the TriviaQA dataset, training a Llama-3-8B model to function as an autonomous agent that can search for information when needed.
+This implementation is based on the [AutoDidact](https://github.com/dCaples/AutoDidact) framework and applies it to the TriviaQA dataset, training a Llama-3.1-8B model to function as an autonomous agent that can search for information when needed.
 
 ## Project Structure
 
@@ -47,7 +47,7 @@ Agentic RAG trains language models to function as autonomous agents with the fol
 
 ## Key Features
 
-- **Fine-tuned Llama-3-8B model** on the TriviaQA dataset using GRPO
+- **Fine-tuned Llama-3.1-8B model** on the TriviaQA dataset using GRPO
 - **Autonomous agent capabilities** for recognizing missing information and generating retrieval tool calls
 - **LoRA-based parameter-efficient training** for reduced memory usage
 - **FAISS-based retrieval system** for efficient document search
@@ -85,7 +85,7 @@ python train.py
 
 Training features:
 
-- Fine-tunes Llama-3-8B using GRPO
+- Fine-tunes Llama-3.1-8B using GRPO
 - Uses LoRA for parameter-efficient training
 - Implements agentic generation with autonomous search capabilities
 - Applies correctness-based reward functions
@@ -106,23 +106,15 @@ The training uses two reward functions:
 1. **Correctness Reward**: Evaluates whether the final answer is correct using an LLM-as-a-Judge approach
 2. **Formatting Reward**: Rewards proper tool call formatting and penalizes errors
 
-### 4. Inference
+### 4. Inference & Evaluation
 
-Run inference with the trained model:
+Run inference and evaluation with the trained model:
 
 ```bash
 python inference.py
 ```
 
 The inference script loads the trained model and runs evaluation on test data. Configuration options can be adjusted in `inference_config.yaml`.
-
-### 5. Evaluation
-
-The evaluation process measures the model's performance on test data, calculating the percentage of correct answers.
-
-```bash
-python inference.py
-```
 
 The evaluation script:
 
@@ -135,7 +127,7 @@ The evaluation script:
 The evaluation process works as follows:
 
 1. **Model Loading**: The script loads the base Llama-3.1-8B model with LoRA adapters trained during the GRPO process
-2. **Dataset Loading**: Test questions are loaded from the TriviaQA dataset.
+2. **Dataset Loading**: Test questions are loaded from the TriviaQA dataset
 3. **Agentic Generation**: For each question, the model goes through an agentic process:
    - The agent can perform up to 6 generations (configurable)
    - It can make tool calls to search for information when needed
@@ -151,5 +143,3 @@ Configuration options can be adjusted in `inference_config.yaml`:
 - LoRA parameters for loading adapters
 - Sampling parameters for generation (temperature, top_p, max_tokens)
 - Agent configuration (max generations)
-
-The evaluation results are printed showing the percentage of correct answers.
