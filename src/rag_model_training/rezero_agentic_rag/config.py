@@ -1,3 +1,4 @@
+# This code is based on the implementation from: https://github.com/menloresearch/ReZero/blob/main/config.py.
 import os
 import sys
 from datetime import datetime
@@ -18,17 +19,17 @@ MODEL_DIR = PROJ_ROOT / "models"
 LOG_FOLDER = PROJ_ROOT / "logs"
 
 # Evaluations
-RETRIEVER_MODEL_REPO_ID = "intfloat/e5-base-v2"
+RETRIEVER_MODEL_REPO_ID = "intfloat/multilingual-e5-large"
 RETRIEVER_MODEL_DIR = MODEL_DIR / "retriever"
 RETRIEVER_SERVER_PORT = 8001
-GENERATOR_MODEL_REPO_ID = "Menlo/ReZero-v0.1-llama-3.2-3b-it-grpo-250404"
+GENERATOR_MODEL_REPO_ID = "avnlp/Llama-3.2-8B-Instruct-rezero"
 GENERATOR_MODEL_DIR = MODEL_DIR / "generator"
 GENERATOR_SERVER_PORT = 8002
 
 
 # Model configuration
 
-MODEL_NAME = "meta-llama/Llama-3.2-3B-Instruct"
+MODEL_NAME = "meta-llama/Llama-3.2-8B-Instruct"
 device_id = 1 if os.environ.get("CUDA_VISIBLE_DEVICES") == "1" else torch.cuda.current_device()
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
@@ -37,8 +38,8 @@ OUTPUT_DIR = PROJ_ROOT / f"trainer_output_{MODEL_NAME.replace('/', '_')}_gpu{dev
 # Model parameters
 MODEL_CONFIG = {
     "max_seq_length": 4096 * 2,
-    "lora_rank": 64,  # Larger rank = smarter, but slower
-    "gpu_memory_utilization": 0.6,  # Reduce if out of memory
+    "lora_rank": 64,
+    "gpu_memory_utilization": 0.6,
     "model_name": MODEL_NAME,
     "target_modules": [
         "q_proj",
@@ -48,7 +49,7 @@ MODEL_CONFIG = {
         "gate_proj",
         "up_proj",
         "down_proj",
-    ],  # Remove QKVO if out of memory
+    ],
 }
 
 # Training parameters
@@ -62,8 +63,8 @@ TRAINING_CONFIG = {
     "optim": "paged_adamw_8bit",
     "logging_steps": 1,
     "per_device_train_batch_size": 8,
-    "gradient_accumulation_steps": 1,  # Increase to 4 for smoother training
-    "num_generations": 6,  # Decrease if out of memory
+    "gradient_accumulation_steps": 1,
+    "num_generations": 6,
     "max_prompt_length": 4096 * 2,
     "max_completion_length": 2048,
     "max_steps": 1000,
@@ -170,7 +171,7 @@ def update_log_path(log_dir=None):
         rotation="500 MB",
         retention="7 days",
         compression="zip",
-        enqueue=True,  # Enables asynchronous logging
+        enqueue=True,
     )
 
     logger.info(f"Additional logs will be stored in: {log_dir}")

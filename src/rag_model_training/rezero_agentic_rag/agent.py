@@ -1,3 +1,4 @@
+# This code is based on the implementation from: https://github.com/menloresearch/ReZero/blob/main/src/agent.py
 """Core agent functionality for handling tool-based conversations.
 This module provides a base agent class for handling tool-based conversations.
 """

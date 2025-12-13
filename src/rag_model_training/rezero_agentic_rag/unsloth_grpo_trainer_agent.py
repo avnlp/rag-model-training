@@ -1,3 +1,5 @@
+# This code is based on the implementation from: https://github.com/menloresearch/ReZero/blob/main/src/UnslothGRPOTrainerTemp.py.
+
 import os
 from contextlib import nullcontext
 from dataclasses import dataclass, field
@@ -174,7 +176,7 @@ class UnslothEfficientGRPO(torch.autograd.Function):
             scaling,
         ):
             (chunk_grad_input,), (
-                chunk_loss,
+                _chunk_loss,
                 (
                     unscaled_loss,
                     chunk_completion_length,
@@ -294,7 +296,7 @@ def grpo_accumulated_loss(
     n_chunks=-1,
 ):
     # All Unsloth Zoo code licensed under LGPLv3
-    bsz, qlen = input_ids.shape
+    bsz, _qlen = input_ids.shape
     # Find closest multiple
     factors = [i for i in range(1, bsz + 1) if bsz % i == 0]
     if n_chunks == -1:
@@ -329,22 +331,6 @@ def grpo_accumulated_loss(
             n_chunks,
         )
         return loss, completion_length, mean_kl
-
-        # Old non efficient code path
-        new_logits = torch.matmul(new_hidden_states, lm_head.t())
-        new_logits = new_logits[:, :-1, :]  # exclude the last logit: it corresponds to the next token pred
-        old_logits = torch.matmul(old_hidden_states, lm_head.t())
-        old_logits = old_logits[:, :-1, :]  # exclude the last logit: it corresponds to the next token pred
-        loss, completion_length, mean_kl = grpo_compute_loss(
-            old_logits,
-            new_logits,
-            completion_input_ids,
-            completion_mask,
-            trainer.beta,
-            advantages,
-        )
-        return loss, completion_length, mean_kl
-    pass
 
 
 def vLLMSamplingParams(**kwargs):
@@ -1338,7 +1324,7 @@ class _UnslothGRPOTrainer(Trainer):
             inputs["completion_mask"],
         )
         input_ids = torch.cat([prompt_ids, completion_ids], dim=1)
-        bsz, qlen = input_ids.shape
+        _bsz, _qlen = input_ids.shape
         # attention_mask = torch.cat([prompt_mask, completion_mask], dim=1)
         attention_mask = None
         logits_to_keep = completion_ids.size(1)  # we only need to compute the logits for the completion tokens

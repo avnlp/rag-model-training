@@ -1,5 +1,9 @@
-from agent import Agent
-from config import (
+# This code is based on the implementation from: https://github.com/menloresearch/ReZero/blob/main/train_grpo.py.
+
+from unsloth import FastLanguageModel, is_bfloat16_supported
+
+from .agent import Agent
+from .config import (
     MODEL_CONFIG,
     MODEL_NAME,
     OUTPUT_DIR,
@@ -9,9 +13,7 @@ from config import (
     logger,
     update_log_path,
 )
-
-# Import reward functions
-from rewards import (
+from .rewards import (
     build_reward_correctness_fn,
     reward_em_chunk,
     reward_format,
@@ -19,10 +21,9 @@ from rewards import (
     reward_search_diversity,
     reward_search_strategy,
 )
-from search_module import get_qa_dataset
-from tokenizer_adapter import LlamaTokenizerAdapter, QwenTokenizerAdapter, R1DistilTokenizerAdapter
-from unsloth import FastLanguageModel, is_bfloat16_supported
-from unsloth_grpo_trainer_agent import UnslothGRPOConfig, UnslothGRPOTrainer
+from .search_module import get_qa_dataset
+from .tokenizer_adapter import LlamaTokenizerAdapter
+from .unsloth_grpo_trainer_agent import UnslothGRPOConfig, UnslothGRPOTrainer
 
 # Initialize training directories
 paths = init_training_dirs()
@@ -80,17 +81,7 @@ def agentic_generate(
     max_new_tokens: int = 4096 * 2,
 ):
     # Create agent with appropriate adapter based on tokenizer
-    tokenizer_name = tokenizer.name_or_path.lower()
-    if "deepseek-ai/deepseek-r1-distill" in tokenizer_name:
-        adapter = R1DistilTokenizerAdapter()
-    elif "llama" in tokenizer_name:
-        adapter = LlamaTokenizerAdapter()
-    elif "qwen" in tokenizer_name:
-        adapter = QwenTokenizerAdapter()
-    else:
-        msg = f"Unsupported tokenizer: {tokenizer_name}"
-        raise ValueError(msg)
-
+    adapter = LlamaTokenizerAdapter()
     agent = Agent(adapter)
     return agent.run_agent(generate_fn, tokenizer, prompts, max_generations, max_new_tokens=max_new_tokens)
 

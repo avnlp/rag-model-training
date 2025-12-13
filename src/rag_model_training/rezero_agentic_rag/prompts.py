@@ -1,3 +1,4 @@
+# This code is based on the implementation from: https://github.com/menloresearch/ReZero/blob/main/src/prompts.py.
 """Prompt-related functions for handling system and user prompts."""
 
 from datetime import datetime

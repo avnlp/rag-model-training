@@ -1,3 +1,4 @@
+# This code is based on the implementation from: https://github.com/menloresearch/ReZero/blob/main/src/evaluation.py.
 """Evaluation utilities for RL training."""
 
 import inspect
@@ -160,7 +161,7 @@ def run_eval(
     Returns:
         full_chat_states: The chat states from evaluation
     """
-    train_dataset, test_dataset = get_qa_dataset(
+    _train_dataset, test_dataset = get_qa_dataset(
         randomize=False,
         test_size=1,
         questions_path=DATA_DIR / "processed" / "questions_dev.jsonl",

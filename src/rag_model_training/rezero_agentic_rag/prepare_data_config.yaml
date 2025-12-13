@@ -25,7 +25,7 @@ metadata:
   source_name: "TriviaQA"
 
 embedding:
-  model_name: "sentence-transformers/all-mpnet-base-v2"
+  model_name: "intfloat/e5-base-v2"
   model_kwargs:
     device: "cuda"
   encode_kwargs:

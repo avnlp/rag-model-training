@@ -1,47 +1,62 @@
+# This code is based on the implementation from: https://github.com/dCaples/AutoDidact/blob/main/search_module.py.
 """Search module for RL training loop.
 This module provides functions to search through vectorized documents and retrieve question-answer pairs.
 """
 
 import json
+import pickle
 import random
 
-from config import DATA_DIR, logger
+from config import DATA_DIR
 from datasets import Dataset
-from embeddings import CustomHuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
+from langchain_huggingface import HuggingFaceEmbeddings
 
-PROCESSED_DATA_DIR = DATA_DIR
+MODEL_NAME = "intfloat/multilingual-e5-large"
+MODEL_KWARGS = {"device": "cpu"}
+ENCODE_KWARGS = {"normalize_embeddings": False}
+TEST_SIZE = 0.1
+SEED = 42
 
 
-# Load pre-saved vectorstore
 def load_vectorstore():
-    """Load the pre-saved FAISS index."""
+    """Load the pre-saved FAISS index.
+
+    Returns:
+        FAISS: Loaded FAISS vectorstore object or None if failed.
+    """
     try:
-        embeddings = CustomHuggingFaceEmbeddings()
-        # Load the FAISS index from the data directory
-        logger.info(f"Loading FAISS index from: {PROCESSED_DATA_DIR}")
-        vectorstore = FAISS.load_local(str(PROCESSED_DATA_DIR), embeddings, allow_dangerous_deserialization=True)
-        logger.info("Successfully loaded FAISS index")
+
+        embeddings = HuggingFaceEmbeddings(
+            model_name=MODEL_NAME, model_kwargs=MODEL_KWARGS, encode_kwargs=ENCODE_KWARGS
+        )
+
+        # Load the FAISS index with absolute path
+        index_path = DATA_DIR / "faiss_index"
+        print(f"Loading FAISS index from: {index_path}")
+        vectorstore = FAISS.load_local(str(index_path), embeddings, allow_dangerous_deserialization=True)
+        print("Successfully loaded FAISS index")
         return vectorstore
+
     except Exception as e:
-        logger.error(f"Error loading vectorstore: {e}")
+        print(f"Error loading vectorstore: {e}")
         import traceback
 
-        logger.debug(traceback.format_exc())
+        traceback.print_exc()
         return None
 
 
-# Load the vectorstore when module is imported
+# Load vectorstore when module is imported
 try:
     vectorstore = load_vectorstore()
     if vectorstore is None:
-        logger.warning("FAISS vectorstore could not be loaded.")
+        print("Warning: FAISS vectorstore could not be loaded.")
 except Exception as e:
-    logger.error(f"Error loading vectorstore: {e}")
+    print(f"Error loading vectorstore: {e}")
     vectorstore = None
 
 
-def search(query: str, return_type=str, results: int = 5):
+def search(query: str, return_type=str, results: int = 5) -> str | list[str]:
     """Search for relevant chunks using similarity search.
 
     Args:
@@ -51,6 +66,9 @@ def search(query: str, return_type=str, results: int = 5):
 
     Returns:
         Results as string or list depending on return_type
+
+    Raises:
+        ValueError: If vectorstore is not loaded or invalid return_type is provided
     """
     if vectorstore is None:
         msg = "Vectorstore not loaded. Please ensure FAISS index exists."
@@ -72,47 +90,49 @@ def search(query: str, return_type=str, results: int = 5):
         raise ValueError(msg)
 
 
-# Load questions from saved data
-def load_qa_data(questions_path=None):
-    """Load the pre-generated questions.
-
-    Args:
-        questions_path: Path to questions file (default: PROCESSED_DATA_DIR / "questions.jsonl")
+def load_qa_data():
+    """Load the pre-generated questions and document chunks.
 
     Returns:
-        List of question-answer pairs
+        tuple: A tuple containing (chunks, questions) or (None, None) if failed.
     """
     try:
-        if questions_path is None:
-            questions_path = PROCESSED_DATA_DIR / "questions.jsonl"
+        # Get absolute paths to data files using config
+        chunks_path = DATA_DIR / "saved_data" / "chunks.pkl"
+        questions_path = DATA_DIR / "saved_data" / "questions.json"
 
-        logger.info(f"Loading questions from: {questions_path}")
+        print(f"Loading chunks from: {chunks_path}")
+        print(f"Loading questions from: {questions_path}")
+
+        # Load the chunks
+        with open(chunks_path, "rb") as f:
+            chunks = pickle.load(f)
 
         # Load the questions
         with open(questions_path) as f:
-            questions = [json.loads(line) for line in f]
+            questions = json.load(f)
 
-        logger.info(f"Successfully loaded {len(questions)} questions")
-        return questions
+        print(f"Successfully loaded {len(chunks)} chunks and {len(questions)} questions")
+        return chunks, questions
     except Exception as e:
-        logger.error(f"Error loading QA data: {e}")
+        print(f"Error loading QA data: {e}")
         import traceback
 
-        logger.debug(traceback.format_exc())
-        return None
+        traceback.print_exc()
+        return None, None
 
 
-# Load questions when module is imported
+# Load chunks and questions when module is imported
 try:
-    questions = load_qa_data()
-    if questions is None:
-        logger.warning("Could not load QA data.")
+    chunks, questions = load_qa_data()
+    if chunks is None or questions is None:
+        print("Warning: Could not load QA data.")
 except Exception as e:
-    logger.error(f"Error initializing QA data: {e}")
-    questions = None
+    print(f"Error initializing QA data: {e}")
+    chunks, questions = None, None
 
 
-def get_question_answer(idx=None, return_both: bool = True) -> dict:
+def get_question_answer(idx: int | None = None, return_both: bool = True) -> dict | str:
     """Get a question-answer pair either by index or randomly.
 
     Args:
@@ -120,7 +140,10 @@ def get_question_answer(idx=None, return_both: bool = True) -> dict:
         return_both: Whether to return both question and answer (default: True)
 
     Returns:
-        Question and answer as tuple if return_both=True, otherwise just the question
+        dict | str: Question and answer as dict if return_both=True, otherwise just the question
+
+    Raises:
+        ValueError: If questions are not loaded or index is out of range
     """
     if questions is None:
         msg = "Questions not loaded. Please ensure questions.json exists."
@@ -133,7 +156,7 @@ def get_question_answer(idx=None, return_both: bool = True) -> dict:
         # Select question by index
         qa_pair = questions[idx]
     else:
-        msg = f"Index out of range. Must be between 0 and {len(questions) - 1}"
+        msg = f"Index out of range. Must be between 0 and {len(questions)-1}"
         raise ValueError(msg)
 
     question = qa_pair["question"]
@@ -145,68 +168,42 @@ def get_question_answer(idx=None, return_both: bool = True) -> dict:
         return question
 
 
-# Function to get the total number of questions
 def get_question_count() -> int:
-    """Get the total number of available questions."""
+    """Get the total number of available questions.
+
+    Returns:
+        int: Total number of questions
+
+    Raises:
+        ValueError: If questions are not loaded
+    """
     if questions is None:
         msg = "Questions not loaded. Please ensure questions.json exists."
         raise ValueError(msg)
     return len(questions)
 
 
-def get_qa_dataset(randomize: bool = False, test_size: float = 0.1, seed: int = 42, questions_path=None) -> tuple:
+def get_qa_dataset():
     """Return a HuggingFace Dataset containing question and answer pairs.
 
-    This dataset is constructed from the loaded questions data.
+    This dataset is constructed from the loaded questions data (questions.json).
     Each element in the dataset is a dictionary that includes at least:
       - "question": The question text.
       - "answer": The corresponding answer text.
-      - "supporting_paragraphs": The supporting paragraphs for the question.
     Additional keys present in the original questions data will also be included.
 
-    Args:
-        randomize: Whether to shuffle the dataset
-        test_size: Proportion of the dataset to include in the test split (0 for train-only)
-        seed: Random seed for reproducibility
-        questions_path: Path to questions.jsonl file (if None, uses globally loaded questions)
-
     Returns:
-        A tuple of (train_dataset, test_dataset) HuggingFace Dataset objects.
-        If test_size=0, test_dataset will be empty. If test_size=1, train_dataset will be empty.
+        tuple: A tuple of (train_dataset, test_dataset) split from the full dataset.
     """
-    qa_data = questions
-
-    if questions_path is not None:
-        qa_data = load_qa_data(questions_path)
-
-    if qa_data is None:
-        msg = "Questions not loaded. Please ensure questions.jsonl exists."
+    if questions is None:
+        msg = "Questions not loaded. Please ensure questions.json exists."
         raise ValueError(msg)
 
-    qa_dataset = Dataset.from_list(qa_data)
-    if randomize:
-        qa_dataset = qa_dataset.shuffle(seed=seed)
+    qa_dataset = Dataset.from_list(questions)
+    full_dataset = qa_dataset.shuffle(seed=SEED)
+    train_dataset = full_dataset.train_test_split(test_size=TEST_SIZE, seed=SEED)["train"]
+    test_dataset = full_dataset.train_test_split(test_size=TEST_SIZE, seed=SEED)["test"]
+    train_dataset = train_dataset.rename_column("question", "prompt")
+    test_dataset = test_dataset.rename_column("question", "prompt")
 
-    # Create empty dataset for when train or test size is 0
-    empty_dataset = Dataset.from_list([])
-
-    if test_size <= 0:
-        # Only train dataset, empty test dataset
-        train_dataset = qa_dataset
-        train_dataset = train_dataset.rename_column("question", "prompt")
-        return train_dataset, empty_dataset
-    elif test_size >= 1:
-        # Only test dataset, empty train dataset
-        test_dataset = qa_dataset
-        test_dataset = test_dataset.rename_column("question", "prompt")
-        return empty_dataset, test_dataset
-    else:
-        # Both train and test datasets
-        split = qa_dataset.train_test_split(test_size=test_size, seed=seed)
-        train_dataset = split["train"]
-        test_dataset = split["test"]
-
-        # rename the column of the dataset from "question" to "input"
-        train_dataset = train_dataset.rename_column("question", "prompt")
-        test_dataset = test_dataset.rename_column("question", "prompt")
-        return train_dataset, test_dataset
+    return train_dataset, test_dataset

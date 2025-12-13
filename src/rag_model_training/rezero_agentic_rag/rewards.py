@@ -1,3 +1,4 @@
+# This code is based on the implementation from: https://github.com/menloresearch/ReZero/blob/main/src/rewards.py.
 """Reward functions for RL training."""
 
 import json
@@ -6,8 +7,9 @@ from datetime import datetime
 from difflib import SequenceMatcher
 
 import numpy as np
-from config import LOG_FOLDER, logger
-from evaluation import check_student_answers
+
+from .config import LOG_FOLDER, logger
+from .evaluation import check_student_answers
 
 
 def build_reward_correctness_fn(
@@ -774,4 +776,4 @@ def log_chat_state(prompts: list, completions: list, rewards: list, reward_type:
             }
             f.write(json.dumps(chat_state, ensure_ascii=False) + "\n")
 
-    logger.info(f"💾 Appended {len(prompts)} chat states to {log_file}")
+    logger.info(f"Appended {len(prompts)} chat states to {log_file}")
