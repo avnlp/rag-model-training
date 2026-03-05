@@ -1,4 +1,15 @@
-# RAG Model Training
+<h1 align="center">RAG Model Training</h1>
+
+<div align="center">
+
+[![DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/avnlp/rag-model-training)
+[![CI](https://img.shields.io/github/actions/workflow/status/avnlp/rag-model-training/ci.yml?branch=main&label=CI&logo=githubactions)](https://github.com/avnlp/rag-model-training/actions/workflows/ci.yml)
+[![Ruff](https://img.shields.io/github/actions/workflow/status/avnlp/rag-model-training/ci.yml?branch=main&label=Ruff&logo=ruff)](https://github.com/avnlp/rag-model-training/actions/workflows/ci.yml)
+[![MyPy](https://img.shields.io/github/actions/workflow/status/avnlp/rag-model-training/ci.yml?branch=main&label=MyPy&logo=python)](https://github.com/avnlp/rag-model-training/actions/workflows/ci.yml)
+[![Bandit](https://img.shields.io/github/actions/workflow/status/avnlp/rag-model-training/ci.yml?branch=main&label=Bandit&logo=owasp)](https://github.com/avnlp/rag-model-training/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/avnlp/rag-model-training?color=green)](https://github.com/avnlp/rag-model-training/blob/main/LICENSE)
+
+</div>
 
 This repository provides code for training LLMs for various advanced Retrieval-Augmented Generation (RAG) techniques. Each approach targets a different component of the RAG pipeline: retrieval optimization, joint retrieval and generation evaluation, or agentic generation with autonomous retrieval.
 
