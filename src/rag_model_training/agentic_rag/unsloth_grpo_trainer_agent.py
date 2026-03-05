@@ -175,12 +175,15 @@ class UnslothEfficientGRPO(torch.autograd.Function):
             advantages_j,
             scaling,
         ):
-            (chunk_grad_input,), (
-                _chunk_loss,
+            (
+                (chunk_grad_input,),
                 (
-                    unscaled_loss,
-                    chunk_completion_length,
-                    chunk_mean_kl,
+                    _chunk_loss,
+                    (
+                        unscaled_loss,
+                        chunk_completion_length,
+                        chunk_mean_kl,
+                    ),
                 ),
             ) = torch.func.grad_and_value(
                 compute_loss,
@@ -237,7 +240,6 @@ class UnslothEfficientGRPO(torch.autograd.Function):
             advantages,
             strict=False,
         ):
-
             mark_dynamic(new_hidden_states_j)
             mark_dynamic(old_hidden_states_j)
             mark_dynamic(input_ids_j)
@@ -1485,9 +1487,11 @@ class UnslothGRPOTrainer(_UnslothGRPOTrainer):
 
     dataset = load_dataset("trl-lib/tldr", split="train")
 
+
     def reward_func(completions, **kwargs):
         # Dummy reward function that rewards completions with more unique letters.
         return [float(len(set(completion))) for completion in completions]
+
 
     trainer = GRPOTrainer(
         model="Qwen/Qwen2-0.5B-Instruct",
@@ -1505,7 +1509,7 @@ class UnslothGRPOTrainer(_UnslothGRPOTrainer):
             - A string, being the *model id* of a pretrained model hosted inside a model repo on huggingface.co, or
               a path to a *directory* containing model weights saved using
               [`~transformers.PreTrainedModel.save_pretrained`], e.g., `'./my_model_directory/'`. The model is
-              loaded using [`~transformers.AutoModelForCausalLM.from_pretrained`] with the keywork arguments
+              loaded using [`~transformers.AutoModelForCausalLM.from_pretrained`] with the keyword arguments
               in `args.model_init_kwargs`.
             - A [`~transformers.PreTrainedModel`] object. Only causal language models are supported.
         reward_funcs (`Union[RewardFunc, list[RewardFunc]]`):

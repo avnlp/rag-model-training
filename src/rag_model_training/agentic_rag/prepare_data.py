@@ -102,11 +102,7 @@ def main() -> None:
     test_set = trivia_splits["test"]
     train_set = trivia_splits["train"]
 
-    print(
-        f"\nDataset loaded successfully:"
-        f"\n  - Train examples: {len(train_set)}"
-        f"\n  - Test examples: {len(test_set)}"
-    )
+    print(f"\nDataset loaded successfully:\n  - Train examples: {len(train_set)}\n  - Test examples: {len(test_set)}")
 
     # Create QA pairs from test set
     print("\nCreating QA pairs from test set...")

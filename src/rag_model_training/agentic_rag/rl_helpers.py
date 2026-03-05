@@ -92,9 +92,9 @@ def run_tool_calls(chat_states):
     for chat_state in chat_states:
         if chat_state.get("finished"):
             continue
-        assert (
-            chat_state["messages"][-1]["role"] == "assistant"
-        ), "Expected the last role to be assistant to run tool calls"
+        assert chat_state["messages"][-1]["role"] == "assistant", (
+            "Expected the last role to be assistant to run tool calls"
+        )
         try:
             assistant_response = chat_state["messages"][-1]["content"]
             function_calls = extract_json_objects(assistant_response)
