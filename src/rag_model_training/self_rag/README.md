@@ -24,27 +24,27 @@ self_rag/
 │
 ├── Earnings Call Data Processing
 │   │   # Processes raw earnings call data
-│   └── process_earnings_call_data.py       
+│   └── process_earnings_call_data.py  
 │
 ├── Critic Training
 │   │   # Creates critic training data with [RETRIEVAL] tokens
-│   ├── critic_retrieval_collector.py 
+│   ├── critic_retrieval_collector.py
 │   │   # Creates critic training data with [RELEVANT]/[IRRELEVANT] tokens
-│   ├── critic_relevance_collector.py       
+│   ├── critic_relevance_collector.py  
 │   │   # Creates critic training data with [UTILITY:1]/[UTILITY:2].../[UTILITY:5] tokens
-│   ├── critic_utility_collector.py         
+│   ├── critic_utility_collector.py  
 │   │   # Creates critic training data with [SUPPORTED]/[PARTIALLY_SUPPORTED]/[NOT_SUPPORTED] tokens
-│   ├── critic_groundness_collector.py      
+│   ├── critic_groundness_collector.py  
 │   │   # Combines all critic training data into a single JSON file
-│   ├── critic_data_processor.py            
+│   ├── critic_data_processor.py  
 │   │   # Trains the critic model on the critic training data with special tokens
-│   └── train_critic.py                    
+│   └── train_critic.py  
 │
 └── Generator Training
     │   # Prepares generator training data by running the retriever and evaluating the retrieved documents using the critic model
-    ├── generator_data_preparation.py       
+    ├── generator_data_preparation.py  
     │   # Trains the generator model on the generator training data with special tokens for retrieval, relevance, grounding and utility
-    └── train_generator.py                  
+    └── train_generator.py  
 ```
 
 ## Installation

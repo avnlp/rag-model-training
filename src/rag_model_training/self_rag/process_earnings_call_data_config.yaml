@@ -7,13 +7,13 @@ dataset_name: "lamini/earnings-calls-qa"
 dataset_split: "train"
 
 # Output filename
-output_file: "formatted_earnings_call_dataset.jsonl"  
+output_file: "formatted_earnings_call_dataset.jsonl"
 
 # Prefix for unique IDs
-data_prefix: "earnings_call" 
+data_prefix: "earnings_call"
 
-# Instruction for the model                     
-task_instruction: "Answer the question based on the earnings call transcript.".
+# Instruction for the model
+task_instruction: "Answer the question based on the earnings call transcript."
 
 # Number of samples to randomly select (null for all)
-n_samples: null                        
+n_samples: null
