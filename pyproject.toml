@@ -1,5 +1,5 @@
 [build-system]
-requires = ["uv_build>=0.7.20,<0.8.0"]
+requires = ["uv_build>=0.9.27,<0.10.0"]
 build-backend = "uv_build"
 
 [project]
@@ -28,12 +28,12 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-  "pytest",
-  "coverage[toml]>=6.5",
-  "pytest-rerunfailures",
-  "black==24.10.0",
+  "bandit>=1.9.3",
   "mypy>=1.0.0",
-  "ruff==0.13.1",
+  "pip-audit>=2.10.0",
+  "pre-commit>=4.5.1",
+  "ruff>=0.14.0",
+  "typos>=1.42.3",
 ]
 
 rq_rag = [
@@ -128,20 +128,13 @@ rezero_agentic_rag = [
 ]
 
 
+[tool.uv]
+default-groups = ["dev"]
+
 [project.urls]
 Documentation = "https://github.com/avnlp/rag-model-training#readme"
 Issues = "https://github.com/avnlp/rag-model-training/issues"
 Source = "https://github.com/avnlp/rag-model-training"
-
-[tool.coverage.run]
-source = ["rag-model-training"]
-branch = true
-parallel = true
-
-[tool.coverage.report]
-omit = ["*/tests/*", "*/__init__.py"]
-show_missing = true
-exclude_lines = ["no cov", "if __name__ == .__main__.:", "if TYPE_CHECKING:"]
 
 [tool.ruff]
 line-length = 120
@@ -254,15 +247,33 @@ ban-relative-imports = "parents"
 # Tests can use magic values, assertions, and relative imports
 "tests/**/*" = ["PLR2004", "S101", "TID252"]
 
-[tool.pytest.ini_options]
-minversion = "6.0"
-addopts = "--strict-markers"
-markers = ["integration: integration tests"]
-log_cli = true
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true
 
-[tool.black]
-line-length = 120
+[tool.bandit]
+exclude_dirs = ["/.venv", "/build", "/dist"]
+skips = ["B101"]
+
+[tool.mypy]
+ignore_missing_imports = true
+install_types = true
+non_interactive = true
+mypy_path = "src"
+explicit_package_bases = true
+warn_unused_configs = true
 
 [[tool.mypy.overrides]]
-module = ["rag_model_training.*", "pytest.*", "numpy.*", "nest_asyncio"]
-ignore_missing_imports = true
+module = [
+  "rag_model_training.self_rag.retriever.*",
+  "rag_model_training.self_rag.generator_data_preparation",
+  "rag_model_training.agentic_rag.unsloth_grpo_trainer_agent",
+  "rag_model_training.agentic_rag.train",
+  "rag_model_training.agentic_rag.inference",
+  "rag_model_training.rezero_agentic_rag.unsloth_grpo_trainer_agent",
+  "rag_model_training.rezero_agentic_rag.train",
+  "rag_model_training.rezero_agentic_rag.rewards",
+  "rag_model_training.rezero_agentic_rag.tokenizer_adapter",
+]
+ignore_errors = true
