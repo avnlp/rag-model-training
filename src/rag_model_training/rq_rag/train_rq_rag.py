@@ -372,7 +372,7 @@ def main():
             init_kwargs = {"wandb": {"name": args.wandb_run_name}}
         else:
             init_kwargs = None
-            msg = "check if wandb accessble"
+            msg = "check if wandb accessible"
             raise ValueError(msg)
 
         accelerator.init_trackers(args.wandb_project_name, experiment_config, init_kwargs=init_kwargs)
