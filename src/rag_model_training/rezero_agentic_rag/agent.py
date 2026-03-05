@@ -110,9 +110,9 @@ class Agent:
                 logger.debug("Chat state already finished, skipping tool calls")
                 continue
 
-            assert (
-                chat_state["messages"][-1]["role"] == "assistant"
-            ), "Expected the last role to be assistant to run tool calls"
+            assert chat_state["messages"][-1]["role"] == "assistant", (
+                "Expected the last role to be assistant to run tool calls"
+            )
             try:
                 assistant_response = chat_state["messages"][-1]["content"]
                 search_query = extract_search_query(assistant_response)

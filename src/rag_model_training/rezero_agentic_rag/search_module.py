@@ -26,7 +26,6 @@ def load_vectorstore():
         FAISS: Loaded FAISS vectorstore object or None if failed.
     """
     try:
-
         embeddings = HuggingFaceEmbeddings(
             model_name=MODEL_NAME, model_kwargs=MODEL_KWARGS, encode_kwargs=ENCODE_KWARGS
         )
@@ -156,7 +155,7 @@ def get_question_answer(idx: int | None = None, return_both: bool = True) -> dic
         # Select question by index
         qa_pair = questions[idx]
     else:
-        msg = f"Index out of range. Must be between 0 and {len(questions)-1}"
+        msg = f"Index out of range. Must be between 0 and {len(questions) - 1}"
         raise ValueError(msg)
 
     question = qa_pair["question"]
