@@ -201,9 +201,9 @@ def evaluate_model(
                     for key, value in metric.items():
                         metrics[key].append(value)
         for key, value in metrics.items():
-            assert (
-                len(value) == 12
-            ), f"cqadupstack includes 12 datasets, only {len(value)} values were compute for the {key} metric"
+            assert len(value) == 12, (
+                f"cqadupstack includes 12 datasets, only {len(value)} values were compute for the {key} metric"
+            )
 
     metrics = {key: 100 * np.mean(value) for key, value in metrics.items()}
 

@@ -22,7 +22,7 @@ class Options:
             "--train_data",
             nargs="+",
             default=[],
-            help="Data used for training, passed as a list of directories splitted into tensor files.",
+            help="Data used for training, passed as a list of directories split into tensor files.",
         )
         self.parser.add_argument(
             "--eval_data",

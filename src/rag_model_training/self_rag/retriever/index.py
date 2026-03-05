@@ -66,9 +66,9 @@ class Indexer:
 
         with open(meta_file, "rb") as reader:
             self.index_id_to_db_id = pickle.load(reader)
-        assert (
-            len(self.index_id_to_db_id) == self.index.ntotal
-        ), "Deserialized index_id_to_db_id should match faiss index size"
+        assert len(self.index_id_to_db_id) == self.index.ntotal, (
+            "Deserialized index_id_to_db_id should match faiss index size"
+        )
 
     def _update_id_mapping(self, db_ids: list):
         # new_ids = np.array(db_ids, dtype=np.int64)
