@@ -1,5 +1,5 @@
 [build-system]
-requires = ["uv_build>=0.9.27,<0.10.0"]
+requires = ["uv_build>=0.11.4"]
 build-backend = "uv_build"
 
 [project]
@@ -28,12 +28,12 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-  "bandit>=1.9.3",
-  "mypy>=1.0.0",
+  "bandit>=1.9.4",
+  "mypy>=1.20.0",
   "pip-audit>=2.10.0",
   "pre-commit>=4.5.1",
-  "ruff>=0.14.0",
-  "typos>=1.42.3",
+  "ruff>=0.15.9",
+  "typos>=1.45.0",
 ]
 
 rq_rag = [
