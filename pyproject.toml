@@ -32,8 +32,8 @@ dev = [
   "mypy>=1.20.0",
   "pip-audit>=2.10.0",
   "pre-commit>=4.5.1",
-  "ruff>=0.15.20",
-  "typos>=1",
+  "ruff>=0.16.1",
+  "typos>=1.49.0",
 ]
 
 rq_rag = [
@@ -199,6 +199,7 @@ ignore = [
     "PLR0911",
     "PLR0912",
     "PLR0913",
+    "PLR0917", # sibling of PLR0913: positional-arg count
     "PLR0915",
     "PLW2901",
     "DTZ005",
