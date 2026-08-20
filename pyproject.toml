@@ -199,6 +199,7 @@ ignore = [
     "PLR0911",
     "PLR0912",
     "PLR0913",
+    "PLR0917", # sibling of PLR0913: positional-arg count
     "PLR0915",
     "PLW2901",
     "DTZ005",
